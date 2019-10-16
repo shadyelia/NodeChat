@@ -1,0 +1,22 @@
+<form class="form-horizontal" [formGroup]="loginForm" (ngSubmit)="login()">
+  <div class="form-group">
+    <mat-label>UserName : </mat-label>
+    <mat-form-field class="example-full-width">
+      <input matInput class="form-input role-name-text" id="userName" type="text" name="userName"
+        formControlName="userName">
+    </mat-form-field>
+
+    <div class="error-message" *ngIf="
+    loginForm.get('userName').hasError('required') &&
+            (loginForm.get('userName').touched)
+          ">
+      User Name is required
+    </div>
+
+    <div class="error-message" *ngIf="exist
+          ">
+      User Name is exist before
+    </div>
+  </div>
+  <button mat-button type="submit">Login</button>
+</form>
