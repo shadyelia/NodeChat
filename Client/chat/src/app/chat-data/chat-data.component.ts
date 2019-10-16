@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { IMessage } from "../models/message";
+import { IMessage } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
 
 @Component({
@@ -8,13 +8,19 @@ import { ChatService } from "../services/chat.service";
   styleUrls: ["./chat-data.component.css"]
 })
 export class ChatDataComponent implements OnInit {
-  message = "";
+  message: string = "";
   allMessages: IMessage[] = [];
-  token = Math.random().toString();
+  allUsers: any[] = [];
+  userName: String;
+  token: string = "";
 
   constructor(private chatService: ChatService) {}
 
   ngOnInit() {
+    this.userName = localStorage.getItem("userName");
+    this.chatService.getUsers().subscribe((data: any[]) => {
+      this.allUsers = data;
+    });
     this.chatService.getMessages().subscribe((message: IMessage) => {
       this.allMessages.push(message);
     });
@@ -25,8 +31,8 @@ export class ChatDataComponent implements OnInit {
 
     let newMessage: IMessage = {
       message: this.message,
-      sender: this.token,
-      dateTime: this.getDateFormat()
+      dateTime: this.getDateFormat(),
+      token: this.token
     };
 
     this.chatService.sendMessage(newMessage);
