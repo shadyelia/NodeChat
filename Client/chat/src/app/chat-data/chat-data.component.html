@@ -25,10 +25,11 @@
           <ng-container *ngFor="let user of allUsers">
             <div class="chat_list active_chat">
               <div class="chat_people">
-                <div class="chat_img online"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                <div class="chat_img" [class.online]="user.isOnline" [class.offline]="!user.isOnline"> <img
+                    src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
                 </div>
                 <div class="chat_ib">
-                  <h5>{{user}} <span class="chat_date">Dec 25</span></h5>
+                  <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
                   <p>Test, which is a new approach to have all solutions
                     astrology under one roof.</p>
                 </div>

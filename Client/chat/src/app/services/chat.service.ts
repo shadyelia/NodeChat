@@ -2,7 +2,8 @@ import { Injectable } from "@angular/core";
 import { Socket } from "ngx-socket-io";
 import { Observable } from "rxjs";
 import { IMessage } from "../models/IMessage";
-import { IUser } from "../models/IUser";
+import { IUserLogin } from "../models/IUserLogin";
+import { IUserList } from "../models/IUserList";
 
 @Injectable({
   providedIn: "root"
@@ -10,10 +11,10 @@ import { IUser } from "../models/IUser";
 export class ChatService {
   constructor(private socket: Socket) {}
 
-  public login(user: IUser) {
+  public login(user: IUserLogin) {
     return Observable.create(observer => {
-      this.socket.emit("new-user", user, (exist: boolean) => {
-        observer.next(exist);
+      this.socket.emit("login", user, (finish: boolean) => {
+        observer.next(finish);
       });
     });
   }
@@ -32,7 +33,7 @@ export class ChatService {
 
   public getUsers() {
     return Observable.create(observer => {
-      this.socket.on("usernames", (users: any) => {
+      this.socket.on("usernames", (users: IUserList[]) => {
         observer.next(users);
       });
     });

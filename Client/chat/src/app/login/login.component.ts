@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { ChatService } from "../services/chat.service";
 import { Router } from "@angular/router";
-import { IUser } from "../models/IUser";
+import { IUserLogin } from "../models/IUserLogin";
 
 @Component({
   selector: "app-login",
@@ -11,7 +11,6 @@ import { IUser } from "../models/IUser";
 })
 export class LoginComponent implements OnInit {
   loginForm: FormGroup;
-  exist: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -31,15 +30,13 @@ export class LoginComponent implements OnInit {
 
   login() {
     if (this.loginForm.valid) {
-      let user: IUser = {
-        id: Math.floor(Math.random() * 10),
+      let user: IUserLogin = {
         token: Math.random().toString(),
         userName: this.loginForm.controls.userName.value
       };
 
-      this.chatService.login(user).subscribe((exist: boolean) => {
-        this.exist = exist;
-        if (!exist) {
+      this.chatService.login(user).subscribe((finish: boolean) => {
+        if (finish) {
           localStorage.setItem(
             "userName",
             this.loginForm.controls.userName.value

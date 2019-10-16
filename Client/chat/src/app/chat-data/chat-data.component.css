@@ -74,23 +74,28 @@ img {
   color: #989898;
   margin: auto;
 }
+
 .chat_img {
   float: left;
   width: 11%;
 }
+
 .chat_img.online {
   border: 3px solid #74cf49;
   border-radius: 50%;
 }
+
 .chat_img.offline {
   border: 3px solid red;
   border-radius: 50%;
 }
+
 .container-fluid {
   width: 100%;
   padding-right: 0px;
   padding-left: 0px;
 }
+
 .chat_ib {
   float: left;
   padding: 0 0 0 15px;

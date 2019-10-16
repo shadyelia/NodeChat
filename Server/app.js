@@ -1,27 +1,31 @@
 const app = require("express")();
 const server = require("http").Server(app);
 const io = require("socket.io")(server);
-var MongoClient = require("mongodb").MongoClient;
+
+const MongoClient = require("mongodb").MongoClient;
+const url = "mongodb://localhost:27017";
+const dbName = "ChatDb";
+const client = new MongoClient(url);
+var db;
 
 users = [];
 
-server.listen(3000, () => {
-  console.log("Listening on port 3000");
-});
+// Connect to the db
+function ConnectToDB() {
+  client.connect(function(err, client) {
+    db = client.db(dbName);
+    console.log("Connected correctly to server");
+
+    getUsers();
+  });
+}
 
 io.sockets.on("connection", socket => {
   ConnectToDB();
-  socket.on("new-user", function(data, exists) {
-    if (users.indexOf(data) != -1) {
-      console.log("user exist before", data);
-      exists(false);
-    } else {
-      console.log("new user login", data);
-      exists(false);
-      socket.user = data;
-      addUser(data);
-      updateUsers();
-    }
+  socket.on("login", function(data, finish) {
+    login(data);
+    finish(true);
+    updateUsers();
   });
 
   socket.on("send-message", message => {
@@ -40,42 +44,29 @@ io.sockets.on("connection", socket => {
   }
 });
 
-var db;
-const url = "mongodb://localhost:27017";
-
-// Database Name
-const dbName = "ChatDb";
-
-// Create a new MongoClient
-const client = new MongoClient(url);
-
-// Connect to the db
-function ConnectToDB() {
-  client.connect(function(err, client) {
-    // assert.equal(null, err);
-    console.log("Connected correctly to server");
-
-    db = client.db(dbName);
+function makeUserOffline(id) {
+  db.collection("Users", function(err, collection) {
+    collection.update({ id: id }, { $set: { isOnline: false } }, function(
+      err,
+      result
+    ) {
+      if (err) throw err;
+      console.log("Document Updated Successfully");
+    });
   });
 }
 
-// console.log("connected to mongo");
-// MongoClient.connect("mongodb://", function(err, db) {
-//   if (err) throw err;
-
-//   db = client.db(dbName);
-
-// function makeUserOffline(id) {
-//   db.collection("Users", function(err, collection) {
-//     collection.update({ id: id }, { $set: { isOnline: false } }, function(
-//       err,
-//       result
-//     ) {
-//       if (err) throw err;
-//       console.log("Document Updated Successfully");
-//     });
-//   });
-// }
+function makeUserOnline(id) {
+  db.collection("Users", function(err, collection) {
+    collection.update({ id: id }, { $set: { isOnline: false } }, function(
+      err,
+      result
+    ) {
+      if (err) throw err;
+      console.log("Document Updated Successfully");
+    });
+  });
+}
 
 function getUsers() {
   db.collection("Users", function(err, collection) {
@@ -84,6 +75,20 @@ function getUsers() {
       this.users = items;
     });
   });
+}
+
+function login(user) {
+  var query = { userName: user.userName };
+  db.collection("Users")
+    .find(query)
+    .toArray(function(err, result) {
+      if (err) throw err;
+      if (result && result.length != 0) {
+        makeUserOnline(result[0].id);
+      } else {
+        addUser(user);
+      }
+    });
 }
 
 function addUser(user) {
@@ -95,3 +100,7 @@ function addUser(user) {
     });
   });
 }
+
+server.listen(3000, () => {
+  console.log("Listening on port 3000");
+});

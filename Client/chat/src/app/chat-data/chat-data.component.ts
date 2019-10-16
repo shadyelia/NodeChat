@@ -1,6 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { IMessage } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
+import { IUserList } from "../models/IUserList";
 
 @Component({
   selector: "app-chat-data",
@@ -10,7 +11,7 @@ import { ChatService } from "../services/chat.service";
 export class ChatDataComponent implements OnInit {
   message: string = "";
   allMessages: IMessage[] = [];
-  allUsers: any[] = [];
+  allUsers: IUserList[] = [];
   userName: String;
   token: string = "";
 
@@ -18,8 +19,9 @@ export class ChatDataComponent implements OnInit {
 
   ngOnInit() {
     this.userName = localStorage.getItem("userName");
-    this.chatService.getUsers().subscribe((data: any[]) => {
-      this.allUsers = data;
+    this.chatService.getUsers().subscribe((users: IUserList[]) => {
+      console.log(users);
+      this.allUsers = users;
     });
     this.chatService.getMessages().subscribe((message: IMessage) => {
       this.allMessages.push(message);

@@ -1,5 +1,4 @@
-export interface IUser {
-  id: number;
+export interface IUserLogin {
   token: string;
   userName: string;
 }
