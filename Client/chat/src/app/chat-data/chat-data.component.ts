@@ -1,7 +1,9 @@
 import { Component, OnInit } from "@angular/core";
+import { FormGroup, FormBuilder } from "@angular/forms";
 import { IMessage } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
+import { Observable } from "rxjs";
 
 @Component({
   selector: "app-chat-data",
@@ -9,22 +11,25 @@ import { IUserList } from "../models/IUserList";
   styleUrls: ["./chat-data.component.css"]
 })
 export class ChatDataComponent implements OnInit {
-  message: string = "";
+  messageForm: FormGroup;
   allMessages: IMessage[] = [];
-  allUsers: IUserList[] = [];
-  userName: String;
-  token: string = "";
+  allUsers$: Observable<IUserList[]>;
+  userName: string;
 
-  constructor(private chatService: ChatService) {}
+  constructor(private fb: FormBuilder, private chatService: ChatService) {}
 
   ngOnInit() {
     this.userName = localStorage.getItem("userName");
-    this.chatService.getUsers().subscribe((users: IUserList[]) => {
-      console.log(users);
-      this.allUsers = users;
-    });
+    this.allUsers$ = this.chatService.getUsers();
     this.chatService.getMessages().subscribe((message: IMessage) => {
       this.allMessages.push(message);
+    });
+    this.createForm();
+  }
+
+  createForm() {
+    this.messageForm = this.fb.group({
+      message: [""]
     });
   }
 
@@ -32,13 +37,13 @@ export class ChatDataComponent implements OnInit {
     this.getDateFormat();
 
     let newMessage: IMessage = {
-      message: this.message,
+      message: this.messageForm.controls.message.value,
       dateTime: this.getDateFormat(),
-      token: this.token
+      userName: this.userName
     };
 
     this.chatService.sendMessage(newMessage);
-    this.message = "";
+    this.messageForm.controls.message.setValue("");
   }
 
   getDateFormat(): string {

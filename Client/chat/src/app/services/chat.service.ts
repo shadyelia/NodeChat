@@ -33,7 +33,7 @@ export class ChatService {
 
   public getUsers() {
     return Observable.create(observer => {
-      this.socket.on("usernames", (users: IUserList[]) => {
+      this.socket.on("usersList", (users: IUserList[]) => {
         observer.next(users);
       });
     });

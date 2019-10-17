@@ -86,7 +86,7 @@ img {
 }
 
 .chat_img.offline {
-  border: 3px solid red;
+  border: 3px solid #dee2e6ce;
   border-radius: 50%;
 }
 

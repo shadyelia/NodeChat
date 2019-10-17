@@ -22,26 +22,28 @@
           </div>
         </div>
         <div class="inbox_chat">
-          <ng-container *ngFor="let user of allUsers">
-            <div class="chat_list active_chat">
-              <div class="chat_people">
-                <div class="chat_img" [class.online]="user.isOnline" [class.offline]="!user.isOnline"> <img
-                    src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
-                </div>
-                <div class="chat_ib">
-                  <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
-                  <p>Test, which is a new approach to have all solutions
-                    astrology under one roof.</p>
+          <ng-container *ngIf="allUsers$ | async as allUsers">
+            <ng-container *ngFor="let user of allUsers">
+              <div class="chat_list active_chat">
+                <div class="chat_people">
+                  <div class="chat_img" [class.online]="user.isOnline" [class.offline]="!user.isOnline"> <img
+                      src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                  </div>
+                  <div class="chat_ib">
+                    <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
+                    <p>Test, which is a new approach to have all solutions
+                      astrology under one roof.</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </ng-container>
           </ng-container>
         </div>
       </div>
       <div class="mesgs">
         <div class="msg_history">
           <ng-container *ngFor="let newMessage of allMessages">
-            <div class="incoming_msg" *ngIf="newMessage.token == token">
+            <div class="incoming_msg" *ngIf="newMessage.userName == userName">
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
               </div>
               <div class="received_msg">
@@ -51,7 +53,7 @@
                 </div>
               </div>
             </div>
-            <div class="outgoing_msg" *ngIf="newMessage.token != token">
+            <div class="outgoing_msg" *ngIf="newMessage.userName != userName">
               <div class="sent_msg">
                 <p>{{newMessage.message}}</p>
                 <span class="time_date">{{newMessage.dateTime}}</span>
@@ -61,10 +63,13 @@
         </div>
         <div class="type_msg">
           <div class="input_msg_write">
-            <input type="text" [(ngModel)]="message" class="write_msg" placeholder="Type a message" />
-            <button class="msg_upload_btn" type="button"><i class="fa fa-paperclip" aria-hidden="true"></i></button>
-            <button class="msg_send_btn" type="button" (click)="sendMessage()"><i class="fa fa-paper-plane-o"
-                aria-hidden="true"></i></button>
+            <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
+              <input type="text" id="message" type="text" name="message" formControlName="message" class="write_msg"
+                placeholder="Type a message" />
+              <button class="msg_upload_btn" type="button"><i class="fa fa-paperclip" aria-hidden="true"></i></button>
+              <button class="msg_send_btn" type="button" (click)="sendMessage()"><i class="fa fa-paper-plane-o"
+                  aria-hidden="true"></i></button>
+            </form>
           </div>
         </div>
       </div>
