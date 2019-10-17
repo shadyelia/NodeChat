@@ -19,7 +19,7 @@ export class ChatDataComponent implements OnInit {
   constructor(private fb: FormBuilder, private chatService: ChatService) {}
 
   ngOnInit() {
-    this.userName = localStorage.getItem("userName");
+    this.userName = this.chatService.getUserName();
     this.allUsers$ = this.chatService.getUsers();
     this.chatService.getMessages().subscribe((message: IMessage) => {
       this.allMessages.push(message);

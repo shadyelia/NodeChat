@@ -37,10 +37,7 @@ export class LoginComponent implements OnInit {
 
       this.chatService.login(user).subscribe((finish: boolean) => {
         if (finish) {
-          localStorage.setItem(
-            "userName",
-            this.loginForm.controls.userName.value
-          );
+          this.chatService.setUserName(this.loginForm.controls.userName.value);
           this.router.navigateByUrl(`/chat`);
         }
       });

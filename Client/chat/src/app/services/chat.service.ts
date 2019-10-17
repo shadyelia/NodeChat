@@ -9,6 +9,7 @@ import { IUserList } from "../models/IUserList";
   providedIn: "root"
 })
 export class ChatService {
+  userName: string = "";
   constructor(private socket: Socket) {}
 
   public login(user: IUserLogin) {
@@ -37,5 +38,13 @@ export class ChatService {
         observer.next(users);
       });
     });
+  }
+
+  public setUserName(userName: string) {
+    this.userName = userName;
+  }
+
+  public getUserName(): string {
+    return this.userName;
   }
 }

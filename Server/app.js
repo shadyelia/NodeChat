@@ -27,8 +27,8 @@ io.sockets.on("connection", socket => {
 
   socket.on("disconnect", function() {
     if (!socket.user) return;
-    console.log(socket.user.userName + "going offline");
-    makeUserOffline(socket.user.id);
+    console.log(socket.user.userName + " is going offline");
+    makeUserOffline(socket.user._id);
     updateUsers();
   });
 
@@ -44,8 +44,8 @@ io.sockets.on("connection", socket => {
       .toArray(function(err, result) {
         if (err) throw err;
         if (result && result.length != 0) {
-          console.log(socket.user.userName + "going online");
-          makeUserOnline(result[0].id);
+          console.log(result[0].userName + " is going online");
+          makeUserOnline(result[0]._id);
           socket.user = result[0];
         } else {
           addUser(user);
@@ -82,11 +82,12 @@ io.sockets.on("connection", socket => {
 
   function makeUserOffline(id) {
     db.collection("Users", function(err, collection) {
-      collection.update({ id: id }, { $set: { isOnline: false } }, function(
+      collection.update({ _id: id }, { $set: { isOnline: false } }, function(
         err,
         result
       ) {
         if (err) throw err;
+        console.log("User Online offline");
         updateUsers();
       });
     });
@@ -94,7 +95,7 @@ io.sockets.on("connection", socket => {
 
   function makeUserOnline(id) {
     db.collection("Users", function(err, collection) {
-      collection.update({ id: id }, { $set: { isOnline: true } }, function(
+      collection.update({ _id: id }, { $set: { isOnline: true } }, function(
         err,
         result
       ) {
