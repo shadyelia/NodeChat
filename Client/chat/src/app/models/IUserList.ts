@@ -1,5 +1,5 @@
 export interface IUserList {
-  id: number;
+  _id: number;
   token: string;
   userName: string;
   isOnline: boolean;

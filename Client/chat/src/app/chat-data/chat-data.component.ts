@@ -15,6 +15,7 @@ export class ChatDataComponent implements OnInit {
   allMessages: IMessage[] = [];
   allUsers$: Observable<IUserList[]>;
   userName: string;
+  selectedUser: IUserList;
 
   constructor(private fb: FormBuilder, private chatService: ChatService) {}
 
@@ -34,16 +35,17 @@ export class ChatDataComponent implements OnInit {
   }
 
   sendMessage() {
-    this.getDateFormat();
+    if (this.selectUser) {
+      let newMessage: IMessage = {
+        message: this.messageForm.controls.message.value,
+        dateTime: this.getDateFormat(),
+        from: this.userName,
+        to: this.selectedUser.userName
+      };
 
-    let newMessage: IMessage = {
-      message: this.messageForm.controls.message.value,
-      dateTime: this.getDateFormat(),
-      userName: this.userName
-    };
-
-    this.chatService.sendMessage(newMessage);
-    this.messageForm.controls.message.setValue("");
+      this.chatService.sendMessage(newMessage);
+      this.messageForm.controls.message.setValue("");
+    }
   }
 
   getDateFormat(): string {
@@ -74,5 +76,9 @@ export class ChatDataComponent implements OnInit {
       date.getDate();
 
     return dateString;
+  }
+
+  selectUser(user: IUserList) {
+    if (user) this.selectedUser = user;
   }
 }

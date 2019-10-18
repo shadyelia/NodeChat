@@ -9,6 +9,7 @@ const client = new MongoClient(url);
 var db;
 
 var users = [];
+var usersOnline = {};
 
 io.sockets.on("connection", socket => {
   ConnectToDB();
@@ -22,7 +23,9 @@ io.sockets.on("connection", socket => {
   socket.on("send-message", message => {
     if (!socket.user) return;
     message.userName = socket.user.userName;
-    io.emit("new-message", message);
+
+    usersOnline[message.from].emit("new-message", message);
+    usersOnline[message.to].emit("new-message", message);
   });
 
   socket.on("disconnect", function() {
@@ -101,6 +104,7 @@ io.sockets.on("connection", socket => {
       ) {
         if (err) throw err;
         console.log("User Online now");
+        usersOnline[socket.user.userName] = socket;
         updateUsers();
       });
     });

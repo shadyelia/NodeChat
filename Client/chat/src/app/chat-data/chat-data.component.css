@@ -124,6 +124,11 @@ img {
   display: inline-block;
   width: 6%;
 }
+
+.incoming_msg_img :hover {
+  background-color: grey;
+}
+
 .received_msg {
   display: inline-block;
   padding: 0 0 0 10px;

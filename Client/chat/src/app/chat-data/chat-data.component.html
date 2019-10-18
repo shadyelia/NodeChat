@@ -22,18 +22,21 @@
         <div class="inbox_chat">
           <ng-container *ngIf="allUsers$ | async as allUsers">
             <ng-container *ngFor="let user of allUsers">
-              <div class="chat_list active_chat">
-                <div class="chat_people">
-                  <div class="chat_img" [class.online]="user.isOnline" [class.offline]="!user.isOnline"> <img
-                      src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
-                  </div>
-                  <div class="chat_ib">
-                    <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
-                    <p>Test, which is a new approach to have all solutions
-                      astrology under one roof.</p>
+              <ng-container *ngIf="user.userName != userName">
+                <div class="chat_list" (click)="selectUser(user)"
+                  [class.active_chat]="selectedUser && selectedUser.userName == user.userName">
+                  <div class="chat_people">
+                    <div class="chat_img" [class.online]="user.isOnline" [class.offline]="!user.isOnline"> <img
+                        src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                    </div>
+                    <div class="chat_ib">
+                      <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
+                      <p>Test, which is a new approach to have all solutions
+                        astrology under one roof.</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ng-container>
             </ng-container>
           </ng-container>
         </div>
@@ -41,7 +44,7 @@
       <div class="mesgs">
         <div class="msg_history">
           <ng-container *ngFor="let newMessage of allMessages">
-            <div class="incoming_msg" *ngIf="newMessage.userName == userName">
+            <div class="incoming_msg" *ngIf="newMessage.from == userName">
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
               </div>
               <div class="received_msg">
@@ -51,7 +54,7 @@
                 </div>
               </div>
             </div>
-            <div class="outgoing_msg" *ngIf="newMessage.userName != userName">
+            <div class="outgoing_msg" *ngIf="newMessage.from != userName">
               <div class="sent_msg">
                 <p>{{newMessage.message}}</p>
                 <span class="time_date">{{newMessage.dateTime}}</span>
