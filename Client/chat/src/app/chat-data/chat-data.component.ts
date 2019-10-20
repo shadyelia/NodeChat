@@ -36,7 +36,14 @@ export class ChatDataComponent implements OnInit {
     if (this.userName == "") this.router.navigateByUrl(`/`);
     this.allUsers$ = this.chatService.getUsers();
     this.chatService.getMessages().subscribe((message: IMessage) => {
-      this.allMessages.push(message);
+      if (this.selectedUser) {
+        if (
+          message.from == this.selectedUser.userName ||
+          message.to == this.selectedUser.userName
+        ) {
+          this.allMessages.push(message);
+        }
+      }
     });
     this.createForm();
   }
@@ -93,6 +100,7 @@ export class ChatDataComponent implements OnInit {
 
   selectUser(user: IUserList) {
     if (user) this.selectedUser = user;
+    this.allMessages = [];
   }
 
   fileOverBase(e: any): void {

@@ -69,7 +69,6 @@
               <input type="text" id="message" type="text" name="message" formControlName="message" class="write_msg"
                 placeholder="Type a message" />
 
-
               <button class="msg_upload_btn" type="button">
                 <input type="file" ng2FileSelect [uploader]="uploader" class="custom-file-input">
                 <i class="fa fa-paperclip"></i></button>
@@ -79,8 +78,8 @@
             </form>
             <tr *ngFor="let item of uploader.queue">
               <td><strong>{{ item?.file?.name }}</strong></td>
-              <td *ngIf="uploader.isHTML5" nowrap>{{ item?.file?.size/1024/1024 | number:'.2' }} MB</td>
-              <td *ngIf="uploader.isHTML5">
+              <td *ngIf="uploader.options.isHTML5" nowrap>{{ item?.file?.size/1024/1024 | number:'.2' }} MB</td>
+              <td *ngIf="uploader.options.isHTML5">
                 <div class="progress" style="margin-bottom: 0;">
                   <div class="progress-bar" role="progressbar" [ngStyle]="{ 'width': item.progress + '%' }"></div>
                 </div>

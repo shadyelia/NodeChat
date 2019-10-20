@@ -17,28 +17,21 @@ io.sockets.on("connection", socket => {
   socket.on("login", function(data, finish) {
     finish(true);
     login(data);
-    updateUsers();
   });
 
   socket.on("send-message", message => {
-    if (!socket.user) return;
-    message.userName = socket.user.userName;
-
-    usersOnline[message.from].emit("new-message", message);
-    usersOnline[message.to].emit("new-message", message);
+    if (usersOnline[message.from])
+      usersOnline[message.from].emit("new-message", message);
+    if (usersOnline[message.to])
+      usersOnline[message.to].emit("new-message", message);
   });
 
   socket.on("disconnect", function() {
     if (!socket.user) return;
     console.log(socket.user.userName + " is going offline");
     makeUserOffline(socket.user._id);
-    updateUsers();
-  });
-
-  function updateUsers() {
     getUsers();
-    io.emit("usersList", this.users);
-  }
+  });
 
   function login(user) {
     var query = { userName: user.userName };
@@ -61,13 +54,14 @@ io.sockets.on("connection", socket => {
       collection.find().toArray(function(err, items) {
         if (err) throw err;
         this.users = items;
+        io.emit("usersList", this.users);
       });
     });
   }
 
   function addUser(user) {
     db.collection("Users", function(err, collection) {
-      collection.insert({
+      collection.insertOne({
         userName: user.userName,
         token: user.token,
         isOnline: true
@@ -80,7 +74,10 @@ io.sockets.on("connection", socket => {
       .toArray(function(err, result) {
         if (err) throw err;
         socket.user = result[0];
+        usersOnline[user.userName] = socket;
       });
+
+    getUsers();
   }
 
   function makeUserOffline(id) {
@@ -91,7 +88,7 @@ io.sockets.on("connection", socket => {
       ) {
         if (err) throw err;
         console.log("User Online offline");
-        updateUsers();
+        getUsers();
       });
     });
   }
@@ -105,7 +102,7 @@ io.sockets.on("connection", socket => {
         if (err) throw err;
         console.log("User Online now");
         usersOnline[socket.user.userName] = socket;
-        updateUsers();
+        getUsers();
       });
     });
   }
