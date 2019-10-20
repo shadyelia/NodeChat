@@ -41,7 +41,8 @@
           </ng-container>
         </div>
       </div>
-      <div class="mesgs">
+      <div ng2FileDrop [ngClass]="{'nv-file-over': hasBaseDropZoneOver}" (fileOver)="fileOverBase($event)"
+        [uploader]="uploader" class="well my-drop-zone" class="mesgs">
         <div class="msg_history">
           <ng-container *ngFor="let newMessage of allMessages">
             <div class="incoming_msg" *ngIf="newMessage.from == userName">
@@ -67,10 +68,42 @@
             <form [formGroup]="messageForm" (ngSubmit)="sendMessage()">
               <input type="text" id="message" type="text" name="message" formControlName="message" class="write_msg"
                 placeholder="Type a message" />
-              <button class="msg_upload_btn" type="button"><i class="fa fa-paperclip" aria-hidden="true"></i></button>
+
+
+              <button class="msg_upload_btn" type="button">
+                <input type="file" ng2FileSelect [uploader]="uploader" class="custom-file-input">
+                <i class="fa fa-paperclip"></i></button>
+
               <button class="msg_send_btn" type="button" (click)="sendMessage()"><i class="fa fa-paper-plane-o"
                   aria-hidden="true"></i></button>
             </form>
+            <tr *ngFor="let item of uploader.queue">
+              <td><strong>{{ item?.file?.name }}</strong></td>
+              <td *ngIf="uploader.isHTML5" nowrap>{{ item?.file?.size/1024/1024 | number:'.2' }} MB</td>
+              <td *ngIf="uploader.isHTML5">
+                <div class="progress" style="margin-bottom: 0;">
+                  <div class="progress-bar" role="progressbar" [ngStyle]="{ 'width': item.progress + '%' }"></div>
+                </div>
+              </td>
+              <td class="text-center">
+                <span *ngIf="item.isSuccess"><i class="fa fa-ok"></i></span>
+                <span *ngIf="item.isCancel"><i class="fa fa-ban"></i></span>
+                <span *ngIf="item.isError"><i class="fa fa-remove"></i></span>
+              </td>
+              <td nowrap>
+                <button type="button" class="btn btn-raised btn-success btn-sm" (click)="item.upload()"
+                  [disabled]="item.isReady || item.isUploading || item.isSuccess">
+                  <span class="fa fa-upload"></span> Upload
+                </button>
+                <button type="button" class="btn btn-raised btn-warning btn-sm" (click)="item.cancel()"
+                  [disabled]="!item.isUploading">
+                  <span class="fa fa-ban"></span> Cancel
+                </button>
+                <button type="button" class="btn btn-raised btn-danger btn-sm" (click)="item.remove()">
+                  <span class="fa fa-trash"></span> Remove
+                </button>
+              </td>
+            </tr>
           </div>
         </div>
       </div>

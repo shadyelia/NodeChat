@@ -225,3 +225,20 @@ img {
   height: 826px;
   overflow-y: auto;
 }
+
+.my-drop-zone {
+  border: dotted 3px lightgray;
+  background-color: #f5f7fa !important;
+}
+.nv-file-over {
+  border: dotted 3px red;
+} /* Default class applied to drop zones on over */
+.another-file-over-class {
+  border: dotted 3px green;
+}
+.fa.fa-paperclip {
+  position: absolute;
+  left: 27%;
+  top: 23%;
+  font-size: 18px;
+}

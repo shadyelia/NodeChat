@@ -12,6 +12,7 @@ import { SocketIoModule, SocketIoConfig } from "ngx-socket-io";
 import { LoginComponent } from "./login/login.component";
 import { ChatDataComponent } from "./chat-data/chat-data.component";
 import { AppRoutingModule } from "./app-routing.module";
+import { FileUploadModule } from "ng2-file-upload/ng2-file-upload";
 
 const config: SocketIoConfig = { url: "http://localhost:3000", options: {} };
 
@@ -26,6 +27,7 @@ const config: SocketIoConfig = { url: "http://localhost:3000", options: {} };
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    FileUploadModule,
     SocketIoModule.forRoot(config)
   ],
   providers: [],

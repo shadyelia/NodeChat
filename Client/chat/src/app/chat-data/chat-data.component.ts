@@ -1,9 +1,11 @@
 import { Component, OnInit } from "@angular/core";
 import { FormGroup, FormBuilder } from "@angular/forms";
+import { Router } from "@angular/router";
 import { IMessage } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
 import { Observable } from "rxjs";
+import { FileUploader } from "ng2-file-upload/ng2-file-upload";
 
 @Component({
   selector: "app-chat-data",
@@ -11,16 +13,27 @@ import { Observable } from "rxjs";
   styleUrls: ["./chat-data.component.css"]
 })
 export class ChatDataComponent implements OnInit {
+  uploader: FileUploader = new FileUploader({
+    url: "https://evening-anchorage-3159.herokuapp.com/api/",
+    isHTML5: true
+  });
+  hasBaseDropZoneOver: boolean = false;
+
   messageForm: FormGroup;
   allMessages: IMessage[] = [];
   allUsers$: Observable<IUserList[]>;
   userName: string;
   selectedUser: IUserList;
 
-  constructor(private fb: FormBuilder, private chatService: ChatService) {}
+  constructor(
+    private fb: FormBuilder,
+    private router: Router,
+    private chatService: ChatService
+  ) {}
 
   ngOnInit() {
     this.userName = this.chatService.getUserName();
+    if (this.userName == "") this.router.navigateByUrl(`/`);
     this.allUsers$ = this.chatService.getUsers();
     this.chatService.getMessages().subscribe((message: IMessage) => {
       this.allMessages.push(message);
@@ -35,7 +48,7 @@ export class ChatDataComponent implements OnInit {
   }
 
   sendMessage() {
-    if (this.selectUser) {
+    if (this.selectedUser) {
       let newMessage: IMessage = {
         message: this.messageForm.controls.message.value,
         dateTime: this.getDateFormat(),
@@ -80,5 +93,9 @@ export class ChatDataComponent implements OnInit {
 
   selectUser(user: IUserList) {
     if (user) this.selectedUser = user;
+  }
+
+  fileOverBase(e: any): void {
+    this.hasBaseDropZoneOver = e;
   }
 }
