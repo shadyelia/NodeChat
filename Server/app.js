@@ -112,7 +112,7 @@ io.sockets.on("connection", socket => {
     var query = { from: from, to: to };
     db.collection("Messages")
       .find(query)
-      .sort({ creationTime: -1 })
+      .sort({ creationTime: 1 })
       .toArray(function(err, result) {
         if (err) throw err;
         socket.emit("gotUserOldMessages", result);
