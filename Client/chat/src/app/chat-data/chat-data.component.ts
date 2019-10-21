@@ -36,11 +36,13 @@ export class ChatDataComponent implements OnInit {
     if (this.userName == "") this.router.navigateByUrl(`/`);
     this.allUsers$ = this.chatService.getUsers();
     this.chatService.getMessages().subscribe((message: IMessage) => {
+      console.log(message);
       if (this.selectedUser) {
         if (
           message.from == this.selectedUser.userName ||
           message.to == this.selectedUser.userName
         ) {
+          message.dateTime = this.getDateFormat(message.creationTime);
           this.allMessages.push(message);
         }
       }
@@ -58,9 +60,10 @@ export class ChatDataComponent implements OnInit {
     if (this.selectedUser) {
       let newMessage: IMessage = {
         message: this.messageForm.controls.message.value,
-        dateTime: this.getDateFormat(),
+        creationTime: new Date(),
         from: this.userName,
-        to: this.selectedUser.userName
+        to: this.selectedUser.userName,
+        dateTime: ""
       };
 
       this.chatService.sendMessage(newMessage);
@@ -68,8 +71,8 @@ export class ChatDataComponent implements OnInit {
     }
   }
 
-  getDateFormat(): string {
-    let date = new Date();
+  getDateFormat(dateInput: string): string {
+    let date = new Date(dateInput);
 
     let monthNames = [
       "Jan",
@@ -101,6 +104,16 @@ export class ChatDataComponent implements OnInit {
   selectUser(user: IUserList) {
     if (user) this.selectedUser = user;
     this.allMessages = [];
+    var data = {
+      from: this.userName,
+      to: user.userName
+    };
+    this.chatService.getOldMessages(data).subscribe(Messages => {
+      this.allMessages = Messages;
+      Messages.forEach(message => {
+        message.dateTime = this.getDateFormat(message.creationTime);
+      });
+    });
   }
 
   fileOverBase(e: any): void {

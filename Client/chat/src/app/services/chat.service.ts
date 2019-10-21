@@ -21,12 +21,12 @@ export class ChatService {
   }
 
   public sendMessage(message: IMessage) {
-    this.socket.emit("send-message", message);
+    this.socket.emit("sendMessage", message);
   }
 
   public getMessages() {
     return Observable.create(observer => {
-      this.socket.on("new-message", (message: IMessage) => {
+      this.socket.on("newMessage", (message: IMessage) => {
         observer.next(message);
       });
     });
@@ -46,5 +46,14 @@ export class ChatService {
 
   public getUserName(): string {
     return this.userName;
+  }
+
+  public getOldMessages(data: any) {
+    this.socket.emit("getOldMessages", data);
+    return Observable.create(observer => {
+      this.socket.on("gotUserOldMessages", (message: IMessage) => {
+        observer.next(message);
+      });
+    });
   }
 }

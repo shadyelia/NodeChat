@@ -19,11 +19,8 @@ io.sockets.on("connection", socket => {
     login(data);
   });
 
-  socket.on("send-message", message => {
-    if (usersOnline[message.from])
-      usersOnline[message.from].emit("new-message", message);
-    if (usersOnline[message.to])
-      usersOnline[message.to].emit("new-message", message);
+  socket.on("sendMessage", message => {
+    addMessage(message);
   });
 
   socket.on("disconnect", function() {
@@ -31,6 +28,10 @@ io.sockets.on("connection", socket => {
     console.log(socket.user.userName + " is going offline");
     makeUserOffline(socket.user._id);
     getUsers();
+  });
+
+  socket.on("getOldMessages", data => {
+    getOldMessages(data.from, data.to);
   });
 
   function login(user) {
@@ -104,6 +105,32 @@ io.sockets.on("connection", socket => {
         usersOnline[socket.user.userName] = socket;
         getUsers();
       });
+    });
+  }
+
+  function getOldMessages(from, to) {
+    var query = { from: from, to: to };
+    db.collection("Messages")
+      .find(query)
+      .sort({ creationTime: -1 })
+      .toArray(function(err, result) {
+        if (err) throw err;
+        socket.emit("gotUserOldMessages", result);
+      });
+  }
+
+  function addMessage(message) {
+    db.collection("Messages", function(err, collection) {
+      collection.insertOne({
+        message: message.message,
+        dateTime: message.dateTime,
+        from: message.from,
+        to: message.to
+      });
+      if (usersOnline[message.from])
+        usersOnline[message.from].emit("newMessage", message);
+      if (usersOnline[message.to])
+        usersOnline[message.to].emit("newMessage", message);
     });
   }
 });

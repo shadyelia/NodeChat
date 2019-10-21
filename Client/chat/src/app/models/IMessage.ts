@@ -1,6 +1,7 @@
 export interface IMessage {
   message: string;
-  dateTime: string;
+  creationTime: Date;
   from: string;
   to: string;
+  dateTime: string;
 }
