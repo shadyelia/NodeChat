@@ -20,7 +20,7 @@
           </div>
         </div>
         <div class="inbox_chat">
-          <ng-container *ngIf="allUsers$ | async as allUsers">
+          <ng-container *ngIf="allUsers && allUsers.length !=0">
             <ng-container *ngFor="let user of allUsers">
               <ng-container *ngIf="user.userName != userName">
                 <div class="chat_list" (click)="selectUser(user)"
@@ -30,7 +30,9 @@
                         src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
                     </div>
                     <div class="chat_ib">
-                      <h5>{{user.userName}} <span class="chat_date">Dec 25</span></h5>
+                      <h5>{{user.userName}} <span *ngIf="user.numberOfNewMessages!=0"
+                          class="numberOfNewMessages">{{user.numberOfNewMessages}}</span>
+                        <span class="chat_date">Dec 25</span></h5>
                       <p>Test, which is a new approach to have all solutions
                         astrology under one roof.</p>
                     </div>

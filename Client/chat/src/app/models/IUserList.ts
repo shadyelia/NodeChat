@@ -3,4 +3,5 @@ export interface IUserList {
   token: string;
   userName: string;
   isOnline: boolean;
+  numberOfNewMessages: number;
 }

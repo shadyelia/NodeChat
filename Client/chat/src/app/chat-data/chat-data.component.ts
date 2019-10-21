@@ -21,7 +21,7 @@ export class ChatDataComponent implements OnInit {
 
   messageForm: FormGroup;
   allMessages: IMessage[] = [];
-  allUsers$: Observable<IUserList[]>;
+  allUsers: IUserList[] = [];
   userName: string;
   selectedUser: IUserList;
 
@@ -34,7 +34,14 @@ export class ChatDataComponent implements OnInit {
   ngOnInit() {
     this.userName = this.chatService.getUserName();
     if (this.userName == "") this.router.navigateByUrl(`/`);
-    this.allUsers$ = this.chatService.getUsers();
+
+    this.chatService.getUsers().subscribe((users: IUserList[]) => {
+      users.forEach(user => {
+        user.numberOfNewMessages = 0;
+      });
+      this.allUsers = users;
+    });
+
     this.chatService.getMessages().subscribe((message: IMessage) => {
       console.log(message);
       if (this.selectedUser) {
@@ -42,9 +49,19 @@ export class ChatDataComponent implements OnInit {
           message.from == this.selectedUser.userName ||
           message.to == this.selectedUser.userName
         ) {
-          message.dateTime = this.getDateFormat(message.creationTime);
+          message.dateTime = this.getDateFormat(
+            message.creationTime.toString()
+          );
           this.allMessages.push(message);
+        } else if (message.to == this.userName) {
+          this.allUsers.find(
+            user => user.userName == message.from
+          ).numberOfNewMessages += 1;
         }
+      } else if (message.to == this.userName) {
+        this.allUsers.find(
+          user => user.userName == message.from
+        ).numberOfNewMessages += 1;
       }
     });
     this.createForm();
@@ -114,6 +131,7 @@ export class ChatDataComponent implements OnInit {
         message.dateTime = this.getDateFormat(message.creationTime);
       });
     });
+    this.selectedUser.numberOfNewMessages = 0;
   }
 
   fileOverBase(e: any): void {

@@ -123,7 +123,7 @@ io.sockets.on("connection", socket => {
     db.collection("Messages", function(err, collection) {
       collection.insertOne({
         message: message.message,
-        dateTime: message.dateTime,
+        creationTime: message.creationTime,
         from: message.from,
         to: message.to
       });

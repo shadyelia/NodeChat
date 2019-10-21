@@ -232,13 +232,22 @@ img {
 }
 .nv-file-over {
   border: dotted 3px red;
-} /* Default class applied to drop zones on over */
+}
+/* Default class applied to drop zones on over */
 .another-file-over-class {
   border: dotted 3px green;
 }
+
 .fa.fa-paperclip {
   position: absolute;
   left: 27%;
   top: 23%;
   font-size: 18px;
+}
+
+.numberOfNewMessages {
+  font-size: larger;
+  background-color: green;
+  border: double;
+  color: ghostwhite;
 }
