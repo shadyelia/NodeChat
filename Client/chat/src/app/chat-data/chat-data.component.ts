@@ -6,6 +6,7 @@ import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
 import { Observable } from "rxjs";
 import { FileUploader } from "ng2-file-upload/ng2-file-upload";
+import { PushNotificationsService } from "../services/push-notifications.service";
 
 @Component({
   selector: "app-chat-data",
@@ -28,10 +29,12 @@ export class ChatDataComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private chatService: ChatService
+    private chatService: ChatService,
+    private notificationService: PushNotificationsService
   ) {}
 
   ngOnInit() {
+    this.notificationService.requestPermission();
     this.userName = this.chatService.getUserName();
     if (this.userName == "") this.router.navigateByUrl(`/`);
 
@@ -57,14 +60,25 @@ export class ChatDataComponent implements OnInit {
           this.allUsers.find(
             user => user.userName == message.from
           ).numberOfNewMessages += 1;
+          this.notify("Message from " + message.to, message.message);
         }
       } else if (message.to == this.userName) {
         this.allUsers.find(
           user => user.userName == message.from
         ).numberOfNewMessages += 1;
+        this.notify("Message from " + message.to, message.message);
       }
     });
     this.createForm();
+  }
+
+  notify(title: string, alertContent: string) {
+    let data: Array<any> = [];
+    data.push({
+      title: title,
+      alertContent: alertContent
+    });
+    this.notificationService.generateNotification(data);
   }
 
   createForm() {
