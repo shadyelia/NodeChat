@@ -56,11 +56,29 @@ io.sockets.on("connection", socket => {
   function getUsers() {
     if (socket.user) {
       db.collection("Users", function(err, collection) {
-        collection.find().toArray(function(err, items) {
-          if (err) throw err;
-          this.users = items;
-          io.emit("usersList", this.users);
-        });
+        collection
+          .aggregate([
+            {
+              $lookup: {
+                from: "Messages",
+                localField: "userName",
+                foreignField: "from",
+                as: "messages"
+              }
+            }
+          ])
+          .toArray(function(err, items) {
+            if (err) throw err;
+            this.users = items;
+            this.users.forEach(user => {
+              user.numberOfNewMessages = user.messages.filter(
+                message =>
+                  message.to == socket.user.userName &&
+                  message.isReaded == false
+              ).length;
+            });
+            io.emit("usersList", this.users);
+          });
       });
     }
   }

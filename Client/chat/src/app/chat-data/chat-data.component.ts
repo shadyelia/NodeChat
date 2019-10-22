@@ -52,9 +52,6 @@ export class ChatDataComponent implements OnInit, OnDestroy {
 
     this.subs.add(
       this.chatService.getUsers().subscribe((users: IUserList[]) => {
-        users.forEach(user => {
-          user.numberOfNewMessages = 0;
-        });
         this.allUsers = users;
       })
     );
