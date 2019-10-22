@@ -12,6 +12,14 @@ export class ChatService {
   userName: string = "";
   constructor(private socket: Socket) {}
 
+  public setUserName(userName: string) {
+    this.userName = userName;
+  }
+
+  public getUserName(): string {
+    return this.userName;
+  }
+
   public login(user: IUserLogin) {
     return Observable.create(observer => {
       this.socket.emit("login", user, (finish: boolean) => {
@@ -38,14 +46,6 @@ export class ChatService {
         observer.next(users);
       });
     });
-  }
-
-  public setUserName(userName: string) {
-    this.userName = userName;
-  }
-
-  public getUserName(): string {
-    return this.userName;
   }
 
   public getOldMessages(data: any) {

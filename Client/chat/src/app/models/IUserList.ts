@@ -4,4 +4,6 @@ export interface IUserList {
   userName: string;
   isOnline: boolean;
   numberOfNewMessages: number;
+  lastMessage: string;
+  dateLastMessage: Date;
 }

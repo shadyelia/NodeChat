@@ -6,6 +6,8 @@ const MongoClient = require("mongodb").MongoClient;
 const url = "mongodb://localhost:27017";
 const dbName = "ChatDb";
 const client = new MongoClient(url);
+var ObjectID = require("mongodb").ObjectID;
+
 var db;
 
 var users = [];
@@ -31,6 +33,7 @@ io.sockets.on("connection", socket => {
   });
 
   socket.on("getOldMessages", data => {
+    if (socket.user) usersOnline[socket.user.userName].selectedUser = data.to;
     getOldMessages(data.from, data.to);
   });
 
@@ -51,13 +54,15 @@ io.sockets.on("connection", socket => {
   }
 
   function getUsers() {
-    db.collection("Users", function(err, collection) {
-      collection.find().toArray(function(err, items) {
-        if (err) throw err;
-        this.users = items;
-        io.emit("usersList", this.users);
+    if (socket.user) {
+      db.collection("Users", function(err, collection) {
+        collection.find().toArray(function(err, items) {
+          if (err) throw err;
+          this.users = items;
+          io.emit("usersList", this.users);
+        });
       });
-    });
+    }
   }
 
   function addUser(user) {
@@ -83,49 +88,71 @@ io.sockets.on("connection", socket => {
 
   function makeUserOffline(id) {
     db.collection("Users", function(err, collection) {
-      collection.update({ _id: id }, { $set: { isOnline: false } }, function(
-        err,
-        result
-      ) {
-        if (err) throw err;
-        console.log("User Online offline");
-        getUsers();
-      });
+      collection.updateOne(
+        { _id: ObjectID(id) },
+        { $set: { isOnline: false } },
+        function(err, result) {
+          if (err) throw err;
+          console.log("User Online offline");
+          delete usersOnline[socket.user.userName];
+          getUsers();
+        }
+      );
     });
   }
 
   function makeUserOnline(id) {
     db.collection("Users", function(err, collection) {
-      collection.update({ _id: id }, { $set: { isOnline: true } }, function(
-        err,
-        result
-      ) {
-        if (err) throw err;
-        console.log("User Online now");
-        usersOnline[socket.user.userName] = socket;
-        getUsers();
-      });
+      collection.updateOne(
+        { _id: ObjectID(id) },
+        { $set: { isOnline: true } },
+        function(err, result) {
+          if (err) throw err;
+          console.log("User Online now");
+          usersOnline[socket.user.userName] = socket;
+          getUsers();
+        }
+      );
     });
   }
 
   function getOldMessages(from, to) {
-    var query = { from: from, to: to };
+    var queryFrom = { from: from, to: to };
+    var queryTo = { from: to, to: from };
     db.collection("Messages")
-      .find(query)
+      .find({ $or: [queryFrom, queryTo] })
       .sort({ creationTime: 1 })
-      .toArray(function(err, result) {
+      .toArray(function(err, messages) {
         if (err) throw err;
-        socket.emit("gotUserOldMessages", result);
+        socket.emit("gotUserOldMessages", messages);
       });
+
+    updateMessagesToReaded(queryTo);
+  }
+
+  function updateMessagesToReaded(queryTo) {
+    var data = { $set: { isReaded: true } };
+    db.collection("Messages").updateMany(queryTo, data, (err, collection) => {
+      if (err) throw err;
+      console.log(
+        collection.result.nModified + " Record(s) updated successfully"
+      );
+    });
   }
 
   function addMessage(message) {
+    if (
+      usersOnline[message.to] &&
+      usersOnline[message.to].selectedUser == message.from
+    )
+      message.isReaded = true;
     db.collection("Messages", function(err, collection) {
       collection.insertOne({
         message: message.message,
         creationTime: message.creationTime,
         from: message.from,
-        to: message.to
+        to: message.to,
+        isReaded: message.isReaded
       });
       if (usersOnline[message.from])
         usersOnline[message.from].emit("newMessage", message);

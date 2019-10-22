@@ -4,4 +4,5 @@ export interface IMessage {
   from: string;
   to: string;
   dateTime: string;
+  isReaded: boolean;
 }

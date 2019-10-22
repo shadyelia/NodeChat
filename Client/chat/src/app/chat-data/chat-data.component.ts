@@ -4,7 +4,6 @@ import { Router } from "@angular/router";
 import { IMessage } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
-import { Observable } from "rxjs";
 import { FileUploader } from "ng2-file-upload/ng2-file-upload";
 import { PushNotificationsService } from "../services/push-notifications.service";
 
@@ -35,6 +34,7 @@ export class ChatDataComponent implements OnInit {
 
   ngOnInit() {
     this.notificationService.requestPermission();
+
     this.userName = this.chatService.getUserName();
     if (this.userName == "") this.router.navigateByUrl(`/`);
 
@@ -94,7 +94,8 @@ export class ChatDataComponent implements OnInit {
         creationTime: new Date(),
         from: this.userName,
         to: this.selectedUser.userName,
-        dateTime: ""
+        dateTime: "",
+        isReaded: false
       };
 
       this.chatService.sendMessage(newMessage);
