@@ -56,4 +56,12 @@ export class ChatService {
       });
     });
   }
+
+  public makeMessagesReaded() {
+    return Observable.create(observer => {
+      this.socket.on("makeMessagesReaded", (readed: boolean) => {
+        observer.next(readed);
+      });
+    });
+  }
 }

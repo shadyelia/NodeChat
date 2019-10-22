@@ -1,4 +1,11 @@
-import { Component, OnInit } from "@angular/core";
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  QueryList,
+  ElementRef,
+  ViewChildren
+} from "@angular/core";
 import { FormGroup, FormBuilder } from "@angular/forms";
 import { Router } from "@angular/router";
 import { IMessage } from "../models/IMessage";
@@ -6,13 +13,18 @@ import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
 import { FileUploader } from "ng2-file-upload/ng2-file-upload";
 import { PushNotificationsService } from "../services/push-notifications.service";
+import { SubSink } from "subsink";
 
 @Component({
   selector: "app-chat-data",
   templateUrl: "./chat-data.component.html",
   styleUrls: ["./chat-data.component.css"]
 })
-export class ChatDataComponent implements OnInit {
+export class ChatDataComponent implements OnInit, OnDestroy {
+  @ViewChildren("messageContainer") messageContainers: QueryList<ElementRef>;
+
+  subs = new SubSink();
+
   uploader: FileUploader = new FileUploader({
     url: "https://evening-anchorage-3159.herokuapp.com/api/",
     isHTML5: true
@@ -38,38 +50,66 @@ export class ChatDataComponent implements OnInit {
     this.userName = this.chatService.getUserName();
     if (this.userName == "") this.router.navigateByUrl(`/`);
 
-    this.chatService.getUsers().subscribe((users: IUserList[]) => {
-      users.forEach(user => {
-        user.numberOfNewMessages = 0;
-      });
-      this.allUsers = users;
-    });
+    this.subs.add(
+      this.chatService.getUsers().subscribe((users: IUserList[]) => {
+        users.forEach(user => {
+          user.numberOfNewMessages = 0;
+        });
+        this.allUsers = users;
+      })
+    );
 
-    this.chatService.getMessages().subscribe((message: IMessage) => {
-      console.log(message);
-      if (this.selectedUser) {
-        if (
-          message.from == this.selectedUser.userName ||
-          message.to == this.selectedUser.userName
-        ) {
-          message.dateTime = this.getDateFormat(
-            message.creationTime.toString()
-          );
-          this.allMessages.push(message);
+    this.subs.add(
+      this.chatService.getMessages().subscribe((message: IMessage) => {
+        console.log(message);
+        if (this.selectedUser) {
+          if (
+            message.from == this.selectedUser.userName ||
+            message.to == this.selectedUser.userName
+          ) {
+            message.dateTime = this.getDateFormat(
+              message.creationTime.toString()
+            );
+            this.allMessages.push(message);
+          } else if (message.to == this.userName) {
+            this.allUsers.find(
+              user => user.userName == message.from
+            ).numberOfNewMessages += 1;
+            this.notify("Message from " + message.to, message.message);
+          }
         } else if (message.to == this.userName) {
           this.allUsers.find(
             user => user.userName == message.from
           ).numberOfNewMessages += 1;
           this.notify("Message from " + message.to, message.message);
         }
-      } else if (message.to == this.userName) {
-        this.allUsers.find(
-          user => user.userName == message.from
-        ).numberOfNewMessages += 1;
-        this.notify("Message from " + message.to, message.message);
-      }
-    });
+      })
+    );
+
+    this.subs.add(
+      this.chatService.makeMessagesReaded().subscribe(res => {
+        this.allMessages.forEach(message => {
+          message.isReaded = true;
+        });
+      })
+    );
+
     this.createForm();
+  }
+
+  ngAfterViewInit() {
+    this.subs.add(
+      this.messageContainers.changes.subscribe(
+        (list: QueryList<ElementRef>) => {
+          this.scrollToBottom(); // For messages added later
+        }
+      )
+    );
+  }
+
+  scrollToBottom() {
+    let el = document.getElementById("message" + (this.allMessages.length - 1));
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   }
 
   notify(title: string, alertContent: string) {
@@ -140,16 +180,22 @@ export class ChatDataComponent implements OnInit {
       from: this.userName,
       to: user.userName
     };
-    this.chatService.getOldMessages(data).subscribe(Messages => {
-      this.allMessages = Messages;
-      Messages.forEach(message => {
-        message.dateTime = this.getDateFormat(message.creationTime);
-      });
-    });
+    this.subs.add(
+      this.chatService.getOldMessages(data).subscribe(Messages => {
+        Messages.forEach(message => {
+          message.dateTime = this.getDateFormat(message.creationTime);
+        });
+        this.allMessages = Messages;
+      })
+    );
     this.selectedUser.numberOfNewMessages = 0;
   }
 
   fileOverBase(e: any): void {
     this.hasBaseDropZoneOver = e;
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
   }
 }

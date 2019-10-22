@@ -30,9 +30,12 @@
                         src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
                     </div>
                     <div class="chat_ib">
-                      <h5>{{user.userName}} <span *ngIf="user.numberOfNewMessages!=0"
-                          class="numberOfNewMessages">{{user.numberOfNewMessages}}</span>
-                        <span class="chat_date">Dec 25</span></h5>
+                      <span>{{user.userName}} </span>
+                      <span *ngIf="user.numberOfNewMessages!=0" class="warp">
+                        <span class="numberOfNewMessages">{{user.numberOfNewMessages}}</span>
+                      </span>
+
+                      <span class="chat_date">Dec 25</span>
                       <p>Test, which is a new approach to have all solutions
                         astrology under one roof.</p>
                     </div>
@@ -46,22 +49,23 @@
       <div ng2FileDrop [ngClass]="{'nv-file-over': hasBaseDropZoneOver}" (fileOver)="fileOverBase($event)"
         [uploader]="uploader" class="well my-drop-zone" class="mesgs">
         <div class="msg_history">
-          <ng-container *ngFor="let newMessage of allMessages">
-            <div class="incoming_msg" *ngIf="newMessage.from == userName">
+          <ng-container #messageContainer *ngFor="let message of allMessages,let i = index">
+            <div class="incoming_msg" id="message{{i}}" *ngIf="message.from == userName">
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
               </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
-                  <p>{{newMessage.message}}</p>
-                  <span class="time_date">{{newMessage.dateTime}}</span>
-
+                  <p>{{message.message}}</p>
+                  <span class="time_date">{{message.dateTime}}
+                    <i class="fa fa-check" aria-hidden="true" [class.messageReaded]="message.isReaded"></i>
+                  </span>
                 </div>
               </div>
             </div>
-            <div class="outgoing_msg" *ngIf="newMessage.from != userName">
+            <div class="outgoing_msg" id="message{{i}}" *ngIf="message.from != userName">
               <div class="sent_msg">
-                <p>{{newMessage.message}}</p>
-                <span class="time_date">{{newMessage.dateTime}}</span>
+                <p>{{message.message}}</p>
+                <span class="time_date">{{message.dateTime}}</span>
               </div>
             </div>
           </ng-container>

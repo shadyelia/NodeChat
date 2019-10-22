@@ -124,7 +124,10 @@ io.sockets.on("connection", socket => {
       .sort({ creationTime: 1 })
       .toArray(function(err, messages) {
         if (err) throw err;
-        socket.emit("gotUserOldMessages", messages);
+        if (usersOnline[from])
+          usersOnline[from].emit("gotUserOldMessages", messages);
+        if (usersOnline[to])
+          usersOnline[to].emit("makeMessagesReaded", messages);
       });
 
     updateMessagesToReaded(queryTo);
