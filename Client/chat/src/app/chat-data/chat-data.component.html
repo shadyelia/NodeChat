@@ -43,7 +43,7 @@
         </div>
       </div>
       <div ng2FileDrop [ngClass]="{'nv-file-over': hasBaseDropZoneOver}" (fileOver)="fileOverBase($event)"
-        [uploader]="uploader" class="well my-drop-zone" class="mesgs">
+        [uploader]="uploader" class="well my-drop-zone" class="mesgs" *ngIf="selectedUser">
         <div class="msg_history">
           <ng-container #messageContainer *ngFor="let message of allMessages,let i = index">
             <div class="incoming_msg" id="message{{i}}" *ngIf="message.from == userName">
@@ -51,7 +51,9 @@
               </div>
               <div class="received_msg">
                 <div class="received_withd_msg">
-                  <p>{{message.message}}</p>
+                  <p *ngIf="message.type == 0">{{message.message}}</p>
+                  <a [href]="message.message" *ngIf="message.type == 1" target="_blank">{{message.fileName}}</a>
+                  <img *ngIf="message.type == 2" [src]="message.message">
                   <span class="time_date">{{message.dateTime}}
                     <i class="fa fa-check" aria-hidden="true" [class.messageReaded]="message.isReaded"></i>
                   </span>
@@ -60,7 +62,9 @@
             </div>
             <div class="outgoing_msg" id="message{{i}}" *ngIf="message.from != userName">
               <div class="sent_msg">
-                <p>{{message.message}}</p>
+                <p *ngIf="message.type == 0">{{message.message}}</p>
+                <a [href]="message.message" *ngIf="message.type == 1" target="_blank">{{message.fileName}}</a>
+                <img *ngIf="message.type == 2" [src]="message.message">
                 <span class="time_date">{{message.dateTime}}</span>
               </div>
             </div>
@@ -76,8 +80,12 @@
                 <input type="file" ng2FileSelect [uploader]="uploader" class="custom-file-input">
                 <i class="fa fa-paperclip"></i></button>
 
-              <button class="msg_send_btn" type="button" (click)="sendMessage()"><i class="fa fa-paper-plane-o"
-                  aria-hidden="true"></i></button>
+              <button class="msg_send_btn" type="submit"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+
+              <div *ngIf="filesSelected">
+                <h2>Upload Progress</h2>
+                <pre>{{uploadProgress$ | async | json}}</pre>
+              </div>
             </form>
             <tr *ngFor="let item of uploader.queue">
               <td><strong>{{ item?.file?.name }}</strong></td>
@@ -93,7 +101,7 @@
                 <span *ngIf="item.isError"><i class="fa fa-remove"></i></span>
               </td>
               <td nowrap>
-                <button type="button" class="btn btn-raised btn-success btn-sm" (click)="item.upload()"
+                <button type="button" class="btn btn-raised btn-success btn-sm" (click)="onFileChange()"
                   [disabled]="item.isReady || item.isUploading || item.isSuccess">
                   <span class="fa fa-upload"></span> Upload
                 </button>

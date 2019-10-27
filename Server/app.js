@@ -85,23 +85,34 @@ io.sockets.on("connection", socket => {
 
   function addUser(user) {
     db.collection("Users", function(err, collection) {
-      collection.insertOne({
-        userName: user.userName,
-        token: user.token,
-        isOnline: true
-      });
+      collection.insertOne(
+        {
+          userName: user.userName,
+          token: user.token,
+          isOnline: true
+        },
+        function(error, response) {
+          if (error) {
+            console.log("error ocuured while inserting document");
+          } else {
+            socket.user = response.ops[0];
+            usersOnline[user.userName] = socket;
+            getUsers();
+          }
+        }
+      );
     });
 
-    var query = { userName: user.userName };
-    db.collection("Users")
-      .find(query)
-      .toArray(function(err, result) {
-        if (err) throw err;
-        socket.user = result[0];
-        usersOnline[user.userName] = socket;
-      });
+    // var query = { userName: user.userName };
+    // db.collection("Users")
+    //   .find(query)
+    //   .toArray(function(err, result) {
+    //     if (err) throw err;
+    //     socket.user = result[0];
+    //     usersOnline[user.userName] = socket;
+    //   });
 
-    getUsers();
+    // getUsers();
   }
 
   function makeUserOffline(id) {
@@ -173,7 +184,9 @@ io.sockets.on("connection", socket => {
         creationTime: message.creationTime,
         from: message.from,
         to: message.to,
-        isReaded: message.isReaded
+        isReaded: message.isReaded,
+        type: message.type,
+        fileName: message.fileName
       });
       if (usersOnline[message.from])
         usersOnline[message.from].emit("newMessage", message);

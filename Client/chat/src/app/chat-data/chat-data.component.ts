@@ -6,14 +6,19 @@ import {
   ElementRef,
   ViewChildren
 } from "@angular/core";
-import { FormGroup, FormBuilder } from "@angular/forms";
+import { FormGroup, FormBuilder, Validators } from "@angular/forms";
 import { Router } from "@angular/router";
-import { IMessage } from "../models/IMessage";
+import { IMessage, MessageType } from "../models/IMessage";
 import { ChatService } from "../services/chat.service";
 import { IUserList } from "../models/IUserList";
 import { FileUploader } from "ng2-file-upload/ng2-file-upload";
 import { PushNotificationsService } from "../services/push-notifications.service";
 import { SubSink } from "subsink";
+import { Observable, from } from "rxjs";
+import { ISasToken, IUploadProgress } from "../models/azureStorage";
+import { BlobStorageService } from "../services/blob-storage.service";
+import { map, combineAll } from "rxjs/operators";
+import { environment } from "../../environments/environment";
 
 @Component({
   selector: "app-chat-data",
@@ -26,10 +31,12 @@ export class ChatDataComponent implements OnInit, OnDestroy {
   subs = new SubSink();
 
   uploader: FileUploader = new FileUploader({
-    url: "https://evening-anchorage-3159.herokuapp.com/api/",
+    url: "https://orcatechsotrage.blob.core.windows.net/samplecontaier",
     isHTML5: true
   });
   hasBaseDropZoneOver: boolean = false;
+  uploadProgress$: Observable<IUploadProgress[]>;
+  filesSelected = false;
 
   messageForm: FormGroup;
   allMessages: IMessage[] = [];
@@ -37,11 +44,15 @@ export class ChatDataComponent implements OnInit, OnDestroy {
   userName: string;
   selectedUser: IUserList;
 
+  noUploadedFiles: boolean = false;
+  filesList: IMessage[] = [];
+
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private chatService: ChatService,
-    private notificationService: PushNotificationsService
+    private notificationService: PushNotificationsService,
+    private blobStorage: BlobStorageService
   ) {}
 
   ngOnInit() {
@@ -58,7 +69,6 @@ export class ChatDataComponent implements OnInit, OnDestroy {
 
     this.subs.add(
       this.chatService.getMessages().subscribe((message: IMessage) => {
-        console.log(message);
         if (this.selectedUser) {
           if (
             message.from == this.selectedUser.userName ||
@@ -120,24 +130,44 @@ export class ChatDataComponent implements OnInit, OnDestroy {
 
   createForm() {
     this.messageForm = this.fb.group({
-      message: [""]
+      message: ["", Validators.required]
     });
   }
 
   sendMessage() {
-    if (this.selectedUser) {
-      let newMessage: IMessage = {
-        message: this.messageForm.controls.message.value,
-        creationTime: new Date(),
-        from: this.userName,
-        to: this.selectedUser.userName,
-        dateTime: "",
-        isReaded: false
-      };
-
-      this.chatService.sendMessage(newMessage);
-      this.messageForm.controls.message.setValue("");
+    if (this.noUploadedFiles) {
+      this.sendNormalMessage();
+    } else {
+      this.sendFiles();
     }
+  }
+
+  sendNormalMessage() {
+    if (this.messageForm.valid) {
+      if (this.selectedUser) {
+        let newMessage: IMessage = {
+          message: this.messageForm.controls.message.value,
+          creationTime: new Date(),
+          from: this.userName,
+          to: this.selectedUser.userName,
+          dateTime: "",
+          isReaded: false,
+          type: MessageType.NormalMessage,
+          fileName: ""
+        };
+
+        this.chatService.sendMessage(newMessage);
+        this.messageForm.controls.message.setValue("");
+      }
+    }
+  }
+
+  sendFiles() {
+    this.sendNormalMessage();
+    this.filesList.forEach(file => {
+      this.chatService.sendMessage(file);
+    });
+    this.noUploadedFiles = true;
   }
 
   getDateFormat(dateInput: string): string {
@@ -190,6 +220,57 @@ export class ChatDataComponent implements OnInit, OnDestroy {
 
   fileOverBase(e: any): void {
     this.hasBaseDropZoneOver = e;
+  }
+
+  onFileChange(): void {
+    this.filesSelected = true;
+
+    this.uploadProgress$ = from(this.uploader.queue).pipe(
+      map(file => this.uploadFile(file["some"])),
+      combineAll()
+    );
+  }
+
+  uploadFile(file: File): Observable<IUploadProgress> {
+    const accessToken: ISasToken = {
+      container: environment.azureStorage.containerName,
+      filename: file.name,
+      storageAccessToken: environment.azureStorage.storageAccessToken,
+      storageUri: environment.azureStorage.storageUri
+    };
+
+    let newMessage: IMessage = {
+      message:
+        environment.azureStorage.storageUri +
+        "/" +
+        environment.azureStorage.containerName +
+        "/" +
+        file.name +
+        environment.azureStorage.storageAccessToken,
+      creationTime: new Date(),
+      from: this.userName,
+      to: this.selectedUser.userName,
+      dateTime: "",
+      isReaded: false,
+      type: file.type.includes("image")
+        ? MessageType.ImageLink
+        : MessageType.FileLink,
+      fileName: file.name
+    };
+
+    this.filesList.push(newMessage);
+    this.noUploadedFiles = false;
+
+    return this.blobStorage
+      .uploadToBlobStorage(accessToken, file)
+      .pipe(map(progress => this.mapProgress(file, progress)));
+  }
+
+  private mapProgress(file: File, progress: number): IUploadProgress {
+    return {
+      filename: file.name,
+      progress: progress
+    };
   }
 
   ngOnDestroy(): void {

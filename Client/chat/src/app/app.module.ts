@@ -13,8 +13,11 @@ import { LoginComponent } from "./login/login.component";
 import { ChatDataComponent } from "./chat-data/chat-data.component";
 import { AppRoutingModule } from "./app-routing.module";
 import { FileUploadModule } from "ng2-file-upload/ng2-file-upload";
+import { BLOB_STORAGE_TOKEN, IAzureStorage } from "./models/azureStorage";
 
 const config: SocketIoConfig = { url: "http://localhost:3000", options: {} };
+
+declare var AzureStorage: IAzureStorage;
 
 @NgModule({
   declarations: [AppComponent, LoginComponent, ChatDataComponent],
@@ -30,7 +33,12 @@ const config: SocketIoConfig = { url: "http://localhost:3000", options: {} };
     FileUploadModule,
     SocketIoModule.forRoot(config)
   ],
-  providers: [],
+  providers: [
+    {
+      provide: BLOB_STORAGE_TOKEN,
+      useValue: AzureStorage.Blob
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}
