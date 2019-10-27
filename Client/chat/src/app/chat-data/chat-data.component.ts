@@ -31,9 +31,9 @@ export class ChatDataComponent implements OnInit, OnDestroy {
   subs = new SubSink();
 
   uploader: FileUploader = new FileUploader({
-    url: "https://orcatechsotrage.blob.core.windows.net/samplecontaier",
     isHTML5: true
   });
+
   hasBaseDropZoneOver: boolean = false;
   uploadProgress$: Observable<IUploadProgress[]>;
   filesSelected = false;
@@ -168,6 +168,10 @@ export class ChatDataComponent implements OnInit, OnDestroy {
       this.chatService.sendMessage(file);
     });
     this.noUploadedFiles = true;
+    this.filesSelected = false;
+    this.uploader = new FileUploader({
+      isHTML5: true
+    });
   }
 
   getDateFormat(dateInput: string): string {

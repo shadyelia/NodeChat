@@ -7,6 +7,9 @@ import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatButtonModule } from "@angular/material/button";
 import { MatInputModule } from "@angular/material";
+import { MatListModule } from "@angular/material/list";
+
+import { NgbProgressbarModule } from "@ng-bootstrap/ng-bootstrap";
 
 import { SocketIoModule, SocketIoConfig } from "ngx-socket-io";
 import { LoginComponent } from "./login/login.component";
@@ -30,7 +33,9 @@ declare var AzureStorage: IAzureStorage;
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    MatListModule,
     FileUploadModule,
+    NgbProgressbarModule,
     SocketIoModule.forRoot(config)
   ],
   providers: [
