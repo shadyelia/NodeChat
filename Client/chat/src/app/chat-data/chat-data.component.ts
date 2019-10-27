@@ -41,11 +41,14 @@ export class ChatDataComponent implements OnInit, OnDestroy {
   messageForm: FormGroup;
   allMessages: IMessage[] = [];
   allUsers: IUserList[] = [];
+  selectedUsers: IUserList[] = [];
   userName: string;
   selectedUser: IUserList;
 
   noUploadedFiles: boolean = false;
   filesList: IMessage[] = [];
+
+  searchText = "";
 
   constructor(
     private fb: FormBuilder,
@@ -64,6 +67,7 @@ export class ChatDataComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.chatService.getUsers().subscribe((users: IUserList[]) => {
         this.allUsers = users;
+        this.selectedUsers = users;
       })
     );
 
@@ -111,6 +115,12 @@ export class ChatDataComponent implements OnInit, OnDestroy {
           this.scrollToBottom(); // For messages added later
         }
       )
+    );
+  }
+
+  search() {
+    this.selectedUsers = this.allUsers.filter(a =>
+      a.userName.toLowerCase().includes(this.searchText.toLowerCase())
     );
   }
 
@@ -193,9 +203,11 @@ export class ChatDataComponent implements OnInit, OnDestroy {
     ];
 
     let dateString: string =
-      date.getHours() +
+      (date.getHours() < 12 ? date.getHours() : date.getHours() - 12) +
       ":" +
       ("00" + date.getMinutes()).slice(-2) +
+      " " +
+      (date.getHours() < 12 ? "AM" : "PM") +
       " | " +
       monthNames[date.getMonth()] +
       " " +
@@ -228,6 +240,7 @@ export class ChatDataComponent implements OnInit, OnDestroy {
 
   onFileChange(): void {
     this.filesSelected = true;
+    this.filesList = [];
 
     this.uploadProgress$ = from(this.uploader.queue).pipe(
       map(file => this.uploadFile(file["some"])),

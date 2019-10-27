@@ -13,15 +13,13 @@
           </div>
           <div class="srch_bar">
             <div class="stylish-input-group">
-              <input type="text" class="search-bar" placeholder="Search">
-              <span class="input-group-addon">
-                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
-              </span> </div>
+              <input type="text" class="search-bar" placeholder="Search" [(ngModel)]="searchText" (keyup)="search()">
+            </div>
           </div>
         </div>
         <div class="inbox_chat">
-          <ng-container *ngIf="allUsers && allUsers.length !=0">
-            <ng-container *ngFor="let user of allUsers">
+          <ng-container *ngIf="selectedUsers && selectedUsers.length !=0">
+            <ng-container *ngFor="let user of selectedUsers">
               <ng-container *ngIf="user.userName != userName">
                 <div class="chat_list" (click)="selectUser(user)"
                   [class.active_chat]="selectedUser && selectedUser.userName == user.userName">
@@ -56,6 +54,7 @@
                   <img *ngIf="message.type == 2" [src]="message.message">
                   <span class="time_date">{{message.dateTime}}
                     <i class="fa fa-check" aria-hidden="true" [class.messageReaded]="message.isReaded"></i>
+                    <i *ngIf="message.isReaded" class="fa fa-check messageReaded" aria-hidden="true"></i>
                   </span>
                 </div>
               </div>
