@@ -6,7 +6,7 @@ function login(socket, user) {
     var query = { userName: user.userName };
     var options = { upsert: true, useFindAndModify: false }
     return new Promise((resolve, reject) => {
-        Users.findOneAndUpdate(query, { $set: { 'isOnline': true } }, options, function (error, doc, res) {
+        Users.findOneAndUpdate(query, { $set: { 'isOnline': true } }, options, (error, doc, res) => {
             if (error) { reject("error : " + error.message) }
             else {
                 socket.user = user
@@ -45,7 +45,7 @@ function getUsers(socket) {
                         }
                     }
                 }
-            ], function (error, result) {
+            ], (error, result) => {
                 if (error) { reject("error : " + error.message) }
                 else {
                     resolve(result);
@@ -55,18 +55,21 @@ function getUsers(socket) {
     })
 }
 
-function makeUserOffline(socket, id) {
-    Users.updateOne(
-        { _id: ObjectID(id) },
-        { $set: { isOnline: false } },
-        function (err, result) {
-            if (err) console.log(err)
-            console.log(result.userName + " is offline");
-            delete usersOnline[socket.user.userName];
-            getUsers();
-        }
-    );
-
+function makeUserOffline(id) {
+    return new Promise((resolve, reject) => {
+        Users.updateOne(
+            { _id: id },
+            { $set: { isOnline: false } },
+            (err, result) => {
+                if (err) reject(err)
+                else {
+                    console.log(result.userName + " is offline ..");
+                    delete usersOnline[result.userName];
+                    resolve();
+                }
+            }
+        );
+    });
 }
 
 module.exports = { login, getUsers, makeUserOffline, usersOnline }

@@ -5,23 +5,31 @@ const { usersOnline } = require('./users.js')
 function getOldMessages(from, to) {
     var queryFrom = { from: from, to: to };
     var queryTo = { from: to, to: from };
-    Messages.find({ $or: [queryFrom, queryTo] })
-        .sort({ creationTime: 1 })
-        .toArray(function (err, messages) {
-            if (err) console.log(err)
-            return messages;
-        });
-
-    updateMessagesToReaded(queryTo);
+    return new Promise((resolve, reject) => {
+        Messages.find({ $or: [queryFrom, queryTo] })
+            .sort({ creationTime: 1 })
+            .exec((err, messages) => {
+                if (err) reject(err)
+                resolve(messages);
+            });
+    });
 }
 
-function updateMessagesToReaded(queryTo) {
+function updateMessagesToReaded(from, to) {
+    var queryTo = { from: to, to: from };
     var data = { $set: { isReaded: true } };
-    Messages.updateMany(queryTo, data, (err, collection) => {
-        if (err) console.log(err);
-        console.log(
-            collection.result.nModified + " Record(s) updated successfully"
-        );
+    return new Promise((resolve, reject) => {
+        Messages.updateMany(queryTo, data, (err, collection) => {
+            if (err) reject(err);
+            else {
+                if (collection.result)
+                    console.log(
+                        collection.result.nModified + " Record(s) updated successfully"
+                    );
+                resolve();
+            }
+
+        });
     });
 }
 
@@ -31,16 +39,13 @@ function addMessage(message) {
         usersOnline[message.to].selectedUser == message.from
     )
         message.isReaded = true;
-    Messages.insertOne({
-        message: message.message,
-        creationTime: message.creationTime,
-        from: message.from,
-        to: message.to,
-        isReaded: message.isReaded,
-        type: message.type,
-        fileName: message.fileName
+    var incommingMessage = new Messages(message)
+    return new Promise((resolve, reject) => {
+        incommingMessage.save(function (err, doc) {
+            resolve(message);
+        })
     });
-    return message;
+
 }
 
-module.exports = { getOldMessages, addMessage }
+module.exports = { getOldMessages, updateMessagesToReaded, addMessage }

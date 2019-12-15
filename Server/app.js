@@ -5,10 +5,10 @@ const io = require("socket.io")(server);
 
 
 const { login, getUsers, makeUserOffline, usersOnline } = require('./users.js');
-const { getOldMessages, addMessage } = require('./messages.js');
+const { getOldMessages, updateMessagesToReaded, addMessage } = require('./messages.js');
 
 io.sockets.on("connection", socket => {
-  socket.on("login", async function (data, callback) {
+  socket.on("login", async (data, callback) => {
     callback(true);
 
     await login(socket, data);
@@ -16,10 +16,12 @@ io.sockets.on("connection", socket => {
     io.emit("usersList", allUsers)
   });
 
-  socket.on("sendMessage", message => {
+  socket.on("sendMessage", async message => {
     usersOnline[message.from].emit("newMessage", message);
 
-    var messageFromDB = addMessage(message);
+    var messageFromDB = await addMessage(message).catch((err) => {
+      console.error(err);
+    });
 
     if (usersOnline[message.from])
       usersOnline[message.from].emit("newMessage", messageFromDB);
@@ -27,23 +29,24 @@ io.sockets.on("connection", socket => {
       usersOnline[message.to].emit("newMessage", messageFromDB);
   });
 
-  socket.on("disconnect", function () {
+  socket.on("disconnect", async () => {
     if (!socket.user) return;
     console.log(socket.user.userName + " is going offline");
-    makeUserOffline(socket, socket.user._id);
-    var users = getUsers(socket);
+    await makeUserOffline(socket.user._id);
+    var users = await getUsers(socket);
     io.emit("usersList", users);
   });
 
-  socket.on("getOldMessages", data => {
+  socket.on("getOldMessages", async data => {
     if (socket.user) usersOnline[socket.user.userName].selectedUser = data.to;
 
-    oldMessages = getOldMessages(data.from, data.to);
+    oldMessages = await getOldMessages(data.from, data.to);
+    await updateMessagesToReaded(data.from, data.to);
 
-    if (usersOnline[from])
-      usersOnline[from].emit("gotUserOldMessages", oldMessages);
-    if (usersOnline[to])
-      usersOnline[to].emit("makeMessagesReaded", oldMessages);
+    if (usersOnline[data.from])
+      usersOnline[data.from].emit("gotUserOldMessages", oldMessages);
+    if (usersOnline[data.to])
+      usersOnline[data.to].emit("makeMessagesReaded", oldMessages);
   });
 
 });
