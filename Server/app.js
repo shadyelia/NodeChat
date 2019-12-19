@@ -17,8 +17,6 @@ io.sockets.on("connection", socket => {
   });
 
   socket.on("sendMessage", async message => {
-    usersOnline[message.from].emit("newMessage", message);
-
     var messageFromDB = await addMessage(message).catch((err) => {
       console.error(err);
     });
@@ -32,7 +30,7 @@ io.sockets.on("connection", socket => {
   socket.on("disconnect", async () => {
     if (!socket.user) return;
     console.log(socket.user.userName + " is going offline");
-    await makeUserOffline(socket.user._id);
+    await makeUserOffline(socket.user.id);
     var users = await getUsers(socket);
     io.emit("usersList", users);
   });

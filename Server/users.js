@@ -1,6 +1,7 @@
 const Users = require('./models/user.model')
 
 var usersOnline = {};
+var users;
 
 function login(socket, user) {
     var query = { userName: user.userName };
@@ -9,7 +10,7 @@ function login(socket, user) {
         Users.findOneAndUpdate(query, { $set: { 'isOnline': true } }, options, (error, doc, res) => {
             if (error) { reject("error : " + error.message) }
             else {
-                socket.user = user
+                socket.user = doc
                 usersOnline[user.userName] = socket
                 console.log(user.userName + " is online")
                 resolve();
@@ -27,28 +28,21 @@ function getUsers(socket) {
                         from: "Messages",
                         localField: "userName",
                         foreignField: "from",
-                        as: "sender"
+                        as: "messages"
                     }
-                }, {
-                    $project: {
-                        "userName": 1,
-                        "isOnline": 1,
-                        "token": 1,
-                        "numberOfNewMessages": {
-                            $size: {
-                                $filter: {
-                                    input: "$sender",
-                                    as: "notReaddedMessage",
-                                    cond: { $eq: ['$$notReaddedMessage.isReaded', true] }
-                                }
-                            }
-                        }
-                    }
-                }
-            ], (error, result) => {
+                },
+            ], function (error, result) {
                 if (error) { reject("error : " + error.message) }
                 else {
-                    resolve(result);
+                    this.users = result;
+                    this.users.forEach(user => {
+                        user.numberOfNewMessages = user.messages.filter(
+                            message =>
+                                message.to == socket.user.userName &&
+                                message.isReaded == false
+                        ).length;
+                    });
+                    resolve(this.users);
                 }
             })
         }
